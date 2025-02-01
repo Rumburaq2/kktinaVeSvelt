@@ -82,5 +82,8 @@
 		<div>{elapsed.toFixed(1)}s</div>
 	</div>
 
+    {#if duration === elapsed}
+        <p>SLA breached!</p>
+    {/if}
 	<!-- <button onclick={reset}>Reset</button> -->
 </div>
