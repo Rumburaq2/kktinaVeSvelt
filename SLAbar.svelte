@@ -19,7 +19,7 @@
     let secondsEpoch = getSecondsSinceEpoch(startDateTime);
 
    // let {severity = "High"} = $props();
-    let severity = "High"
+    let severity = "High";
 
     if(severity === "Low"){
         //end time is startTime + 12h
