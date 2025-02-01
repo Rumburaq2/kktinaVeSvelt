@@ -12,14 +12,15 @@
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
-    const full = `${day}/${month}/${year} ${hours}:${minutes}`;
-    startDateTime = full;
+    startDateTime = `${day}/${month}/${year} ${hours}:${minutes}`;
 
-    //calculate endtime based based on severity
+    //calculate endtime based on severity
     let endDateTime = "01/02/2025 14:31"; //default value
     let secondsEpoch = getSecondsSinceEpoch(startDateTime);
 
-    let severity = "High";
+   // let {severity = "High"} = $props();
+    let severity = "High"
+
     if(severity === "Low"){
         //end time is startTime + 12h
         secondsEpoch = secondsEpoch+12*3600;
@@ -75,5 +76,5 @@
 </script>
 
 <div class="grid-gap">
-	<ProgressBar {startDateTime} {endDateTime}/>
+	<ProgressBar startDateTime={startDateTime} {endDateTime}/>
 </div>

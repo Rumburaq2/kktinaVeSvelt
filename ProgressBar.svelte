@@ -82,5 +82,5 @@
 		<div>{elapsed.toFixed(1)}s</div>
 	</div>
 
-	<button onclick={reset}>Reset</button>
+	<!-- <button onclick={reset}>Reset</button> -->
 </div>
