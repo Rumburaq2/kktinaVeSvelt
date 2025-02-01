@@ -1,14 +1,11 @@
 
 <script lang="ts">
 
-   // export let startDateTime = "01/02/2025 14:30";
     let { startDateTime = "01/02/2025 14:30", endDateTime = "01/02/2025 14:30" } = $props();
-    //export let endDateTime = "01/02/2025 14:31";
     let kkt = calculateDuration();
 	let elapsed = $state(0)
 	let duration = $state(kkt)
 	let interval: number
-
 
 	function start() {
 		interval = setInterval(() => {
