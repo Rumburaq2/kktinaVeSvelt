@@ -1,11 +1,12 @@
 
 <script lang="ts">
 
-    let { startDateTime = "01/02/2025 14:30", endDateTime = "01/02/2025 14:30" } = $props();
-    let kkt = calculateDuration();
-	let elapsed = $state(0)
-	let duration = $state(kkt)
+    let { startDateTime = "01/02/2025 14:30", endDateTime = "01/02/2025 14:31" } = $props();
+    let timecomputed = calculateDuration();
+	let elapsed = $state(0);
+	let duration = $state(timecomputed);
 	let interval: number
+    //let severity;
 
 	function start() {
 		interval = setInterval(() => {
