@@ -10,13 +10,52 @@
 
 	function start() {
 		interval = setInterval(() => {
-			elapsed += 1
+            let now = new Date();
+            let day = String(now.getDate()).padStart(2, '0');
+            let month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            let year = now.getFullYear();
+            let hours = String(now.getHours()).padStart(2, '0');
+            let minutes = String(now.getMinutes()).padStart(2, '0');
+            let seconds = String(now.getSeconds()).padStart(2, '0');
+
+            let currDateTime = `${day}/${month}/${year} ${hours}:${minutes}`;
+
+            let secondsEpoch = getSecondsSinceEpoch(currDateTime);
+             let secondsEpoch2 = getSecondsSinceEpoch(startDateTime);
+
+             console.log(startDateTime)
+            console.log(endDateTime)
+            console.log(secondsEpoch2)
+            console.log()
+            console.log(secondsEpoch)
+            console.log(elapsed)
+			elapsed = secondsEpoch - secondsEpoch2;
 			if (elapsed > duration) {
 				elapsed = duration
 				clearInterval(interval)
 			}
 		}, 1000)
 	}
+
+     function getSecondsSinceEpoch(dateString) {
+        // Split the input string into date and time parts
+        const [datePart, timePart] = dateString.split(' ');
+
+        // Split the date part into day, month, and year
+        const [day, month, year] = datePart.split('/');
+
+        // Split the time part into hours and minutes
+        const [hours, minutes] = timePart.split(':');
+
+        // Create a Date object (note: months are 0-based in JavaScript)
+        const date = new Date(year, month - 1, day, hours, minutes);
+
+        // Get the number of seconds since the Unix epoch
+        const secondsSinceEpoch = Math.floor(date.getTime() / 1000);
+
+        return secondsSinceEpoch;
+    }
+
 
 	function reset() {
 		elapsed = 0
@@ -84,6 +123,6 @@
 
     {#if duration === elapsed}
         <p>SLA breached!</p>
-    {/if}
+        {/if}
 	<!-- <button onclick={reset}>Reset</button> -->
 </div>
