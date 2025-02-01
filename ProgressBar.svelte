@@ -1,10 +1,9 @@
 
 <script lang="ts">
 
-    import ProgressBar from "./lib/ProgressBar.svelte";
-
-	let startDateTime = "01/02/2025 14:30";
-    let endDateTime = "01/02/2025 14:31";
+   // export let startDateTime = "01/02/2025 14:30";
+    let { startDateTime = "01/02/2025 14:30", endDateTime = "01/02/2025 14:30" } = $props();
+    //export let endDateTime = "01/02/2025 14:31";
     let kkt = calculateDuration();
 	let elapsed = $state(0)
 	let duration = $state(kkt)
@@ -75,5 +74,15 @@
 </script>
 
 <div class="grid-gap">
-	<ProgressBar {startDateTime} {endDateTime}/>
+	<div>
+      <p>{startDateTime} - {endDateTime}</p>
+		<label>
+			<span>Elapsed time:</span>
+			<progress max={duration} value={elapsed}></progress>
+		</label>
+
+		<div>{elapsed.toFixed(1)}s</div>
+	</div>
+
+	<button onclick={reset}>Reset</button>
 </div>
