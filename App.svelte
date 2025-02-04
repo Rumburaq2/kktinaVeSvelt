@@ -8,6 +8,7 @@
   function handleClick() {
     components = [...components, { id: Date.now() }]; // Add a new component with a unique ID
   }
+
 </script>
 
 <div class="grid-gap">
@@ -15,4 +16,5 @@
 	{#each components as component}
   <SLAbar/>
 {/each}
+
 </div>
