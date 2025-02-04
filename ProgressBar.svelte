@@ -1,45 +1,83 @@
-
 <script lang="ts">
-
-  const MyState ={
-		NEW: 0,
-	  	RUNNING: 1,
-	    PAUSED: 2,
-  };
-
-  let currstate = MyState.RUNNING;
+    import ProgressBar from "./ProgressBar.svelte";
 
 
-    let { startDateTime = "01/02/2025 14:30", endDateTime = "01/02/2025 14:31" } = $props();
-    let timecomputed = calculateDuration(); //calculate duration betwwen two timestamps in seconds
-	let elapsed = $state(0);
-	let duration = $state(timecomputed);
-	let interval: number
-  	let oldElapsedTime = 0;
-	let currTimeEpoch = 0;
-    let startTimeEpoch = getSecondsSinceEpoch(startDateTime);
-    //let severity;
+	//setting up startDateTime value
+	let startDateTime = "01/02/2025 14:30";//defalut value
+    //calculate timestamp DD/MM/YYYY HH:MM of current time
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+	startDateTime = `${day}/${month}/${year} ${hours}:${minutes}`;
+	startDateTime = "05/02/2025 06:31";
 
-	function start() {
-		interval = setInterval(() => {
-			if(currstate === MyState.RUNNING) {
+	//setting up severity
+	const SEVERITY ={
+		LOW: 12,
+	  	INFORMATIONAL: 24,
+		MEDIUM: 6,
+		HIGH: 1
+  	};
+	let severity = SEVERITY.HIGH;
 
-				//calculate curr time
-				currTimeEpoch = Math.floor((Date.now()) / (1000 * 60)) * 60;
-				//startTimeEpoch = getSecondsSinceEpoch(startDateTime);
+	//setting up endDateTime value
+	let endDateTime = "01/02/2025 22:31"; //default value
+	endDateTime = calculateEndDateTime(startDateTime, severity);
 
-				//console.log(currTimeEpoch);
-				//console.log(Math.floor((Date.now()) / (1000 * 60)) * 60);
-				elapsed = currTimeEpoch - startTimeEpoch + oldElapsedTime;
-				if (elapsed > duration) {
-					elapsed = duration
-					clearInterval(interval)
-				}
-			}
-		}, 1000)
+	console.log("EndTimeeeee:"+endDateTime);
+
+
+	function calculateEndDateTime(startDateTime, severity) {
+  		let secondsEpoch = getSecondsSinceEpoch(startDateTime);
+
+  		// Add the appropriate time in seconds based on severity
+  		if (severity === SEVERITY.LOW) {
+    		secondsEpoch += SEVERITY.LOW * 3600;
+  		}
+		else if (severity === SEVERITY.INFORMATIONAL) {
+    		secondsEpoch += 24 * 3600;
+  		}
+		else if (severity === SEVERITY.MEDIUM) {
+    		secondsEpoch += SEVERITY.MEDIUM * 3600;
+  		}
+		else if (severity === SEVERITY.HIGH) {
+    		secondsEpoch = secondsEpoch+1200;
+  		}
+
+  		// Return the formatted date-time string
+  		return getFormattedDateFromTimestamp(secondsEpoch);
 	}
 
-     function getSecondsSinceEpoch(dateString) {
+	//setting up SLA params
+	const workingHours = {
+    	start: 8, // 8:00 AM
+    	end: 20 // 8:00 PM
+  	};
+
+	const workingDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+	let result;
+	result = getClosestWorkingTime(startDateTime);
+	console.log("startDateTime: "+startDateTime);
+	result = formatDateTime(result);
+	console.log("result: "+result);
+
+	function clicked() {
+		console.log("clicked!");
+	}
+
+	let computedValue;
+	if(result !== true  ){
+		computedValue =  calculateEndDateTime(result, severity);
+		console.log("computed value: "+computedValue)
+	}
+
+
+
+    function getSecondsSinceEpoch(dateString) {
         // Split the input string into date and time parts
         const [datePart, timePart] = dateString.split(' ');
 
@@ -58,87 +96,105 @@
         return secondsSinceEpoch;
     }
 
+    function getFormattedDateFromTimestamp(timestamp) {
+    // Create a Date object from the timestamp (multiply by 1000 to convert seconds to milliseconds)
+    const date = new Date(timestamp * 1000);
 
-	function complete() {
-		//elapsed = 0
-		clearInterval(interval)
-		//turn the shit green
-	}
+    // Extract day, month, year, hours, and minutes
+    const day = String(date.getDate()).padStart(2, '0'); // Ensure 2 digits
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0'); // Ensure 2 digits
+    const minutes = String(date.getMinutes()).padStart(2, '0'); // Ensure 2 digits
 
-	function pause() {
-		currstate = MyState.PAUSED;
-		console.log("Paused!");
-		oldElapsedTime = elapsed;
-	}
+    // Format the date and time as DD/MM/YYYY HH:MM
+    const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
 
-	function resume() {
-		currstate = MyState.RUNNING;
-		startTimeEpoch = (Math.floor((Date.now()) / (1000 * 60)) * 60);
-		console.log("Runing!");
-	}
+    return formattedDate;
+}
 
-	$effect(() => {
-		if (!duration) return
-		start()
-		return () => clearInterval(interval)
-	})
+	function parseDateTime(dateTime) {
+    	const [date, time] = dateTime.split(' ');
+    	const [day, month, year] = date.split('/').map(Number);
+    	const [hours, minutes] = time.split(':').map(Number);
+   	 return new Date(year, month - 1, day, hours, minutes);
+  }
 
-    function calculateDuration() {
-        try {
-            // Extract date and time components
-            let [date1, time1] = startDateTime.split(" ");
-            let [date2, time2] = endDateTime.split(" ");
+    function formatDateTime(date) {
+		if (!(date instanceof Date)) {
+      		return true;
+    	}
+    	const day = String(date.getDate()).padStart(2, '0');
+    	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    	const year = date.getFullYear();
+   	 	const hours = String(date.getHours()).padStart(2, '0');
+    	const minutes = String(date.getMinutes()).padStart(2, '0');
+    	return `${day}/${month}/${year} ${hours}:${minutes}`;
+  	}
 
-            let [d1, m1, y1] = date1.split("/").map(Number);
-            let [d2, m2, y2] = date2.split("/").map(Number);
+    function getClosestWorkingTime(inputDateTime) {
+    const inputDate = parseDateTime(inputDateTime);
+    const currentDayIndex = inputDate.getDay(); // 0 for Sunday, 1 for Monday, etc.
+    const currentHour = inputDate.getHours();
 
-            let [h1, min1] = time1 ? time1.split(":").map(Number) : [0, 0];
-            let [h2, min2] = time2 ? time2.split(":").map(Number) : [0, 0];
+    // Convert day index to a string name
+    const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-            // Convert to JS Date objects (JS months are 0-based)
-            let start = new Date(y1, m1 - 1, d1, h1, min1);
-            let end = new Date(y2, m2 - 1, d2, h2, min2);
-            let totalTime = 0;
-
-            // Calculate the difference in milliseconds
-            let diffMs = end - start;
-
-            if (diffMs < 0) {
-                totalTime = 0;
-                return;
-            }
-
-            // Convert milliseconds to days, hours, minutes, and seconds
-            let totalSeconds = Math.floor(diffMs / 1000);
-            //let days = Math.floor(totalSeconds / 86400);
-            //let hours = Math.floor((totalSeconds % 86400) / 3600);
-            //let minutes = Math.floor((totalSeconds % 3600) / 60);
-            //let seconds = totalSeconds % 60;
-            totalTime = totalSeconds;
-            return totalTime;
-        } catch (error) {
-            console.error("Invalid date format:", error);
-        }
+    // Check if it's a working day and within working hours
+    if (
+      workingDays.includes(dayName[currentDayIndex]) &&
+      currentHour >= workingHours.start &&
+      currentHour < workingHours.end
+    ) {
+      return true;
     }
 
-    console.log(calculateDuration());
+    // Calculate the closest working time
+    const closestTime = new Date(inputDate);
+
+    // If it's outside working hours but on a working day
+    if (workingDays.includes(dayName[currentDayIndex])) {
+      if (currentHour < workingHours.start) {
+        closestTime.setHours(workingHours.start, 0, 0, 0);
+        return closestTime;
+      }
+
+      if (currentHour >= workingHours.end) {
+        let daysToAdd = 1;
+        while (!workingDays.includes(dayName[(currentDayIndex + daysToAdd) % 7])) {
+          daysToAdd++;
+        }
+        closestTime.setDate(closestTime.getDate() + daysToAdd);
+      }
+    } else {
+      // If it's not a working day, find the next working day
+      let daysToAdd = 1;
+      while (!workingDays.includes(dayName[(currentDayIndex + daysToAdd) % 7])) {
+        daysToAdd++;
+      }
+      closestTime.setDate(closestTime.getDate() + daysToAdd);
+    }
+
+    // Set the time to the start of working hours
+    closestTime.setHours(workingHours.start, 0, 0, 0);
+    return closestTime;
+  }
+
+
+
 </script>
 
 <div class="grid-gap">
-	<div>
-      <p>{startDateTime} - {endDateTime}</p>
-		<label>
-			<span>Elapsed time:</span>
-			<progress max={duration} value={elapsed}></progress>
-		</label>
+	<main>
+  <p>Input Date and Time: {startDateTime}</p>
+  {#if result === true}
+    <p>The provided time is within working hours.</p>
+	  <ProgressBar startDateTime={startDateTime} {endDateTime}/>
+  {:else}
+    <p>The closest working time is: {result}</p>
+	  <ProgressBar startDateTime={result} endDateTime={computedValue}/>
+  {/if}
+</main>
 
-		<div>{elapsed.toFixed(1)}s</div>
-	</div>
 
-    {#if duration === elapsed}
-        <p>SLA breached!</p>
-        {/if}
-	 <button onclick={pause}>Pause</button>
-	<button onclick={resume}>Resume</button>
-	<button onclick={complete}>Complete</button>
 </div>
